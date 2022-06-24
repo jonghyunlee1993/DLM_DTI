@@ -5,6 +5,8 @@ The dual-language model-based drug-target interactions
 Our proposed DLM-DTI simultaneously utilizes a molecule language model and a protein language model to predict binding affinity score between molecule-protein sequence pair.
 
 
+![figure_2](https://user-images.githubusercontent.com/37280722/175483490-30386864-03d3-40e7-b5a1-7818dd8420d5.jpeg)
+
 
 ## Implementaion environment
 
