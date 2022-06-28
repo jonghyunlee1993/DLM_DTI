@@ -62,8 +62,11 @@ project
 │   DTI_davis_512.ipynb
 └── data
 │   └── drug
+│   │   │   chem_total.pkl
+│   │   │   chem_qed_filtered.txt
 │   │   └── molecule_tokenizer
 │   └── target
+│       │   protein_in_dtis.pkl
 │       └── protein_tokenizer
 └── weights
     │   dlm_dti_davis_512
