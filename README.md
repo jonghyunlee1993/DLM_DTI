@@ -66,7 +66,7 @@ project
 │   │   │   chem_qed_filtered.txt
 │   │   └── molecule_tokenizer
 │   └── target
-│       │   protein_in_dtis.pkl
+│       │   X.pkl
 │       └── protein_tokenizer
 └── weights
     │   dlm_dti_davis_512
