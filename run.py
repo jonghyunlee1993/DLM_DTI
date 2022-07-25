@@ -39,12 +39,14 @@ class MyCollator(object):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", default="davis", help="davis or kiba")
+    parser.add_argument("--n_train_samples", default=0, type=int, help="# of train samples (default full)")
+    parser.add_argument("--n_valid_samples", default=0, type=int, help="# of valid samples (default full)")
     parser.add_argument("--batch_size", default=32, type=int, help="# of batch for training")
     parser.add_argument("--protein_max_len", default=512, type=int, help="max length of protein sequences")
     parser.add_argument("--project_name", default="DLM_DTI_default", help="wieght files will be saved in the weights/project_name folder")
     parser.add_argument("--learning_rate", default=1e-4, type=float, help="set learning rate for training")
     parser.add_argument("--epochs", default=100, type=int, help="set max training epochs for training")
-    parser.add_argument("--n_gpu", default=1, type=int, help="# of gpus for training")
+    parser.add_argument("--n_gpu", default=0, type=int, help="select gpu number for training")
     parser.add_argument("--use_amp", default="n", help="use automatic mixed precision [n] / y")
 
     args = parser.parse_args()
@@ -67,20 +69,37 @@ if __name__ == "__main__":
 
     collate_batch = MyCollator(molecule_tokenizer, protein_tokenizer)
 
-    train_dataloader = DataLoader(
-        train_dataset, batch_size=args.batch_size, num_workers=14, 
-        pin_memory=True, prefetch_factor=6, drop_last=True, 
-        collate_fn=collate_batch, shuffle=True
-    )
+    if args.n_train_samples > 0:
+        train_sampler = torch.utils.data.RandomSampler(train_df, replacement=True, num_samples=args.n_train_samples)
+        train_dataloader = DataLoader(
+            train_dataset, batch_size=args.batch_size, num_workers=14, 
+            pin_memory=True, prefetch_factor=10, drop_last=True, 
+            collate_fn=collate_batch, sampler=train_sampler 
+        )
+    else:
+        train_dataloader = DataLoader(
+            train_dataset, batch_size=args.batch_size, num_workers=14, 
+            pin_memory=True, prefetch_factor=10, drop_last=True, 
+            collate_fn=collate_batch, shuffle=True 
+        )
+    
+    if args.n_train_samples > 0:
+        valid_sampler = torch.utils.data.RandomSampler(valid_df, replacement=True, num_samples=3000)
+        valid_dataloader = DataLoader(
+            valid_dataset, batch_size=args.batch_size, num_workers=14, 
+            pin_memory=True, prefetch_factor=10, collate_fn=collate_batch,
+            sampler=valid_sampler
+        )
+    else:
+        valid_dataloader = DataLoader(
+            valid_dataset, batch_size=args.batch_size, num_workers=14, 
+            pin_memory=True, prefetch_factor=10, collate_fn=collate_batch
+        )
 
-    valid_dataloader = DataLoader(
-        valid_dataset, batch_size=args.batch_size, num_workers=14, 
-        pin_memory=True, prefetch_factor=6, collate_fn=collate_batch
-    )
-
+    
     test_dataloader = DataLoader(
         test_dataset, batch_size=args.batch_size, num_workers=14, 
-        pin_memory=True, prefetch_factor=6, collate_fn=collate_batch
+        pin_memory=True, prefetch_factor=10, collate_fn=collate_batch
     )
 
     molecule_bert, protein_bert = load_pretrained()
@@ -93,7 +112,7 @@ if __name__ == "__main__":
     model = DTI_prediction(dlm_dti, lr=args.learning_rate)
     
     if args.use_amp == "y":
-        trainer = pl.Trainer(max_epochs=args.epochs, gpus=args.n_gpu, enable_progress_bar=True, callbacks=callbacks, precision=16)
+        trainer = pl.Trainer(max_epochs=args.epochs, gpus=[args.n_gpu], enable_progress_bar=True, callbacks=callbacks, precision=16)
     else:
-        trainer = pl.Trainer(max_epochs=args.epochs, gpus=args.n_gpu, enable_progress_bar=True, callbacks=callbacks)
+        trainer = pl.Trainer(max_epochs=args.epochs, gpus=[args.n_gpu], enable_progress_bar=True, callbacks=callbacks)
     trainer.fit(model, train_dataloader, valid_dataloader)
