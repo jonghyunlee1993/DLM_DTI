@@ -113,11 +113,11 @@ if __name__ == "__main__":
 
     model = DTI_prediction(dlm_dti, lr=args.learning_rate)
     if args.continue_training == "y":
-        print(f"load pretrained weight file {ckpt_fname}")
         ckpt_fname = args.continue_training_weight
+        print(f"load pretrained weight file {ckpt_fname}")
         model = model.load_from_checkpoint(ckpt_fname, dlm_dti=dlm_dti)
         
-        
+
     if args.use_amp == "y":
         trainer = pl.Trainer(max_epochs=args.epochs, gpus=[args.n_gpu], enable_progress_bar=True, callbacks=callbacks, precision=16)
     else:
