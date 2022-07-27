@@ -44,6 +44,8 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", default=32, type=int, help="# of batch for training")
     parser.add_argument("--protein_max_len", default=512, type=int, help="max length of protein sequences")
     parser.add_argument("--project_name", default="DLM_DTI_default", help="wieght files will be saved in the weights/project_name folder")
+    parser.add_argument("--continue_training", default="n", help="use pretrained weight file [n] / y")
+    parser.add_argument("--continue_training_weight", default="", help="specify pretrained weight file")
     parser.add_argument("--learning_rate", default=1e-4, type=float, help="set learning rate for training")
     parser.add_argument("--epochs", default=100, type=int, help="set max training epochs for training")
     parser.add_argument("--n_gpu", default=0, type=int, help="select gpu number for training")
@@ -110,7 +112,12 @@ if __name__ == "__main__":
     ]
 
     model = DTI_prediction(dlm_dti, lr=args.learning_rate)
-    
+    if args.continue_training == "y":
+        print(f"load pretrained weight file {ckpt_fname}")
+        ckpt_fname = args.continue_training_weight
+        model = model.load_from_checkpoint(ckpt_fname, dlm_dti=dlm_dti)
+        
+        
     if args.use_amp == "y":
         trainer = pl.Trainer(max_epochs=args.epochs, gpus=[args.n_gpu], enable_progress_bar=True, callbacks=callbacks, precision=16)
     else:
