@@ -6,10 +6,11 @@ from torchmetrics.functional import mean_squared_error, mean_absolute_error
 
 
 class DTI_prediction(pl.LightningModule):
-    def __init__(self, dlm_dti, lr=1e-4):
+    def __init__(self, dlm_dti, lr=1e-4, use_scheduler=False):
         super().__init__()
         self.model = dlm_dti
         self.lr = lr
+        self.use_scheduler = use_scheduler
 
         
     def forward(self, molecule_sequence, protein_sequence):
@@ -58,6 +59,9 @@ class DTI_prediction(pl.LightningModule):
     
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
-        
-        return {"optimizer": optimizer, "lr_scheduler": scheduler}
+
+        if self.use_scheduler:
+            scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
+            return {"optimizer": optimizer, "lr_scheduler": scheduler}
+        else:
+            return optimizer

@@ -49,6 +49,7 @@ if __name__ == "__main__":
     parser.add_argument("--learning_rate", default=1e-4, type=float, help="set learning rate for training")
     parser.add_argument("--epochs", default=100, type=int, help="set max training epochs for training")
     parser.add_argument("--n_gpu", default=0, type=int, help="select gpu number for training")
+    parser.add_argument("--use_scheduler", default="n", help="use cosine annealing learning rate scheduler [n] / y")
     parser.add_argument("--use_amp", default="n", help="use automatic mixed precision [n] / y")
 
     args = parser.parse_args()
@@ -111,7 +112,7 @@ if __name__ == "__main__":
         ModelCheckpoint(monitor='valid_loss', save_top_k=3, dirpath='weights/' + args.project_name, filename='dlm_dti-{epoch:03d}-{valid_loss:.4f}-{valid_mae:.4f}'),
     ]
 
-    model = DTI_prediction(dlm_dti, lr=args.learning_rate)
+    model = DTI_prediction(dlm_dti, lr=args.learning_rate, use_scheduler=args.use_scheduler)
     if args.continue_training == "y":
         ckpt_fname = args.continue_training_weight
         print(f"load pretrained weight file {ckpt_fname}")
