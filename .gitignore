@@ -1,10 +1,7 @@
 data
-
-lighting_logs
-lightning_logs/*
-
+wandb
+lightning_logs
 weights
-weights/*
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/linux,jupyternotebooks
